@@ -9,7 +9,7 @@
 
 void* clientthread(void* args)
 {
-    int client_request=*((int*)args)
+    int client_request=*((int*)args);
     int network_socket;
 
     network_socket=socket(AF_INET,SOCK_STREAM,0);
@@ -17,7 +17,7 @@ void* clientthread(void* args)
     server_address.sin_family=AF_INET;
     server_address.sin_addr.s_addr=INADDR_ANY;
     server_address.sin_port=htons(8989);
-    int connection_status=connect(network_socket,(struct sockaddr*)&server_address,sizeof(server_address))
+    int connection_status=connect(network_socket,(struct sockaddr*)&server_address,sizeof(server_address));
     if(connection_status <0)
     {
         puts("error\n");
@@ -45,14 +45,13 @@ int main()
         {
             int client_request=1;
 
-            pthread_create(c);
             sleep(20);
             break;
         }
         case 2:
         {
             int client_request=2;
-            pthread_create(&tid,NULL,clienthread,&client_request);
+            pthread_create(&tid,NULL,clientthread,&client_request);
             sleep(20);
             break;
 
