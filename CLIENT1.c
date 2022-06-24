@@ -1,39 +1,63 @@
-#include<arpa/inet.h>
-#include<stdio.h>
-#include<string.h>
-#include<sys/socket.h>
-#include<unistd.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#define MAX 80
 #define PORT 8080
-int main(int argc,char const* argv[])
+#define SA struct sockaddr
+void func(int sockfd)
 {
-    int sock=0,valread,client_fd;
-    struct sockaddr_in serv_addr;
-    char* hello="hello I got your message";
-    char buffer[1024]={0};
-    if((sock=socket(AF_INET,SOCK_STREAM,0))<0)
-    {
-        printf("\n socket creation error \n");
-        return -1;
+	char buff[MAX];
+	int n;
+	for (;;) {
+		bzero(buff, sizeof(buff));
+		printf("Enter the string : ");
+		n = 0;
+		while ((buff[n++] = getchar()) != '\n')
+			;
+		write(sockfd, buff, sizeof(buff));
+		bzero(buff, sizeof(buff));
+		read(sockfd, buff, sizeof(buff));
+		printf("From Server : %s", buff);
+		if ((strncmp(buff, "exit", 4)) == 0) {
+			printf("Client Exit...\n");
+			break;
+		}
+	}
+}
 
-    }
-    serv_addr.sin_family=AF_INET;
-    serv_addr.sin_port=htons(PORT);
-    if(inet_pton(AF_INET,"127.0.0.1",&serv_addr.sin_addr)<=0)
-    {
-        printf("\nInvalid address/Adress not supported \n");
-        return -1;
+int main()
+{
+	int sockfd, connfd;
+	struct sockaddr_in servaddr, cli;
 
-    }
-    if((client_fd=connect(sock,(struck sockaddr*)&serv_addr,sizeof(serv_addr)))<0)
-    {
-        printf("\nConnection Failed \n");
-        return -1;
+	// socket create and verification
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
 
-    }
-    send(sock,hello,strlen(hello),0);
-    printf("Hello I got your message\n");
-    valread=read(sock,buffer,1024);
-    printf("%s\n",buffer);
-    close(client_fd);
-    return 0;
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	servaddr.sin_port = htons(PORT);
+
+	// connect the client socket to server socket
+	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+		printf("connection with the server failed...\n");
+		exit(0);
+	}
+	else
+		printf("connected to the server..\n");
+
+	// function for chat
+	func(sockfd);
+
+	// close the socket
+	close(sockfd);
 }
